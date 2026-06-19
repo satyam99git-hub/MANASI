@@ -77,9 +77,34 @@ class Response(TypedDict):
     error: Optional[str]
 
 
+class Empathy(TypedDict):
+    final_answer: str
+    emotional_state: Literal[
+        "neutral", "curious", "confused", "worried", "overwhelmed", "frustrated"
+    ]
+    source: Literal["rag", "llm"]
+    answer_type: Literal[
+        "concept_explanation",
+        "therapy_information",
+        "course_information",
+        "research_summary",
+        "website_information",
+        "personal_guidance",
+        "supportive_information",
+        "general_knowledge",
+    ]
+    topic: str
+    intent: str
+    confidence: float
+    grounded_chunk_ids: list[str]
+    humanization_time_ms: float
+    error: Optional[str]
+
+
 class GraphState(TypedDict):
     user_message: str
     chat_history: list[ChatTurn]
     understanding: Optional[Understanding]
     knowledge: Optional[Knowledge]
     response: Optional[Response]
+    empathy: Optional[Empathy]
