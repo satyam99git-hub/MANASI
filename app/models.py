@@ -55,3 +55,16 @@ class AnswerResponse(BaseModel):
     grounded_chunk_ids: list[str]
     generation_time_ms: float
     error: str | None
+
+
+class HumanizeResponse(BaseModel):
+    final_answer: str
+    emotional_state: str
+    source: str
+    answer_type: str
+    topic: str
+    intent: str
+    confidence: float
+    grounded_chunk_ids: list[str]
+    humanization_time_ms: float
+    error: str | None
