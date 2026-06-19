@@ -4,7 +4,8 @@ from fastapi import FastAPI, HTTPException
 from langchain_core.messages import AIMessage, HumanMessage
 
 from app.config import settings
-from app.models import ChatRequest, ChatResponse, SourceChunk, UnderstandResponse
+from app.models import ChatRequest, ChatResponse, KnowledgeResponse, SourceChunk, UnderstandResponse
+from app.nodes.knowledge_node import build_knowledge_graph
 from app.nodes.understanding_node import build_understanding_graph
 from app.rag.chain import build_chain
 
@@ -12,15 +13,17 @@ MAX_HISTORY_TURNS = 6
 
 chat_chain = None
 understanding_graph = None
+knowledge_graph = None
 session_histories: dict[str, list] = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global chat_chain, understanding_graph
+    global chat_chain, understanding_graph, knowledge_graph
     settings.validate()
     chat_chain = build_chain()
     understanding_graph = build_understanding_graph()
+    knowledge_graph = build_knowledge_graph()
     yield
 
 
@@ -80,6 +83,23 @@ def understand(request: ChatRequest):
         }
     )
     return UnderstandResponse(**result["understanding"])
+
+
+@app.post("/knowledge", response_model=KnowledgeResponse)
+def knowledge(request: ChatRequest):
+    if knowledge_graph is None:
+        raise HTTPException(status_code=503, detail="Knowledge node is still starting up")
+
+    history = session_histories.get(request.session_id, [])
+    result = knowledge_graph.invoke(
+        {
+            "user_message": request.message,
+            "chat_history": _history_to_chat_turns(history),
+            "understanding": None,
+            "knowledge": None,
+        }
+    )
+    return KnowledgeResponse(**result["knowledge"])
 
 
 if __name__ == "__main__":

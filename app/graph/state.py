@@ -24,7 +24,40 @@ class Understanding(TypedDict):
     ]
 
 
+class RetrievedDocument(TypedDict):
+    chunk_id: str
+    content: str
+    content_type: Literal[
+        "course",
+        "blog",
+        "research_article",
+        "faq",
+        "practitioner_info",
+        "therapy_info",
+        "website_content",
+        "neuroplasticity_content",
+        "pdf_document",
+    ]
+    source_title: str
+    source_url: Optional[str]
+    similarity_score: float
+    metadata: dict
+
+
+class Knowledge(TypedDict):
+    source: Literal["rag", "llm"]
+    retrieved_docs: list[RetrievedDocument]
+    confidence: float
+    query_used: str
+    intent: str
+    retrieval_skipped: bool
+    content_types_searched: list[str]
+    retrieval_time_ms: float
+    error: Optional[str]
+
+
 class GraphState(TypedDict):
     user_message: str
     chat_history: list[ChatTurn]
     understanding: Optional[Understanding]
+    knowledge: Optional[Knowledge]
