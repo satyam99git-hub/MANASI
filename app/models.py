@@ -21,3 +21,25 @@ class UnderstandResponse(BaseModel):
     topic: str
     search_query: str
     emotional_state: str
+
+
+class RetrievedDocumentModel(BaseModel):
+    chunk_id: str
+    content: str
+    content_type: str
+    source_title: str
+    source_url: str | None
+    similarity_score: float
+    metadata: dict
+
+
+class KnowledgeResponse(BaseModel):
+    source: str
+    retrieved_docs: list[RetrievedDocumentModel]
+    confidence: float
+    query_used: str
+    intent: str
+    retrieval_skipped: bool
+    content_types_searched: list[str]
+    retrieval_time_ms: float
+    error: str | None
