@@ -43,3 +43,15 @@ class KnowledgeResponse(BaseModel):
     content_types_searched: list[str]
     retrieval_time_ms: float
     error: str | None
+
+
+class AnswerResponse(BaseModel):
+    answer: str
+    source: str
+    answer_type: str
+    topic: str
+    intent: str
+    confidence: float
+    grounded_chunk_ids: list[str]
+    generation_time_ms: float
+    error: str | None

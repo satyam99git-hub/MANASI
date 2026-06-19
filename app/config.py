@@ -26,6 +26,12 @@ class Settings:
     rag_similarity_threshold: float = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.35"))
     rag_min_relevant_chunks: int = int(os.getenv("RAG_MIN_RELEVANT_CHUNKS", "1"))
 
+    response_model: str = os.getenv("RESPONSE_MODEL", "gpt-4o-mini")
+    response_temperature: float = float(os.getenv("RESPONSE_TEMPERATURE", "0.3"))
+    response_max_retries: int = int(os.getenv("RESPONSE_MAX_RETRIES", "1"))
+    response_min_answer_length: int = int(os.getenv("RESPONSE_MIN_ANSWER_LENGTH", "40"))
+    response_document_dump_shingle_words: int = int(os.getenv("RESPONSE_DOCUMENT_DUMP_SHINGLE_WORDS", "12"))
+
     def validate(self) -> None:
         if not self.openai_api_key:
             raise RuntimeError(
