@@ -150,10 +150,29 @@ Reset a conversation:
 curl -X DELETE http://localhost:8000/chat/demo
 ```
 
-## 8. Stop the server
+## 8. Chat in the browser (Streamlit UI)
+
+The Streamlit app is a separate frontend that talks to the API server over HTTP, so the
+server from step 6 must be running first.
+
+```bash
+venv/bin/streamlit run streamlit_app.py
+```
+
+Streamlit prints a `Local URL` (default `http://localhost:8501`) — open it in your browser.
+The sidebar shows whether the backend is reachable and has a button to reset the conversation.
+
+If the API server runs on a different host/port, point the UI at it:
+
+```bash
+MANASI_API_URL=http://localhost:8000 venv/bin/streamlit run streamlit_app.py
+```
+
+## 9. Stop the servers
 
 ```bash
 pkill -f "uvicorn app.main:app"
+pkill -f "streamlit run"
 ```
 
 ## Troubleshooting
