@@ -6,6 +6,8 @@ Built on the knowledge and principles of ManaScience, Manasi simplifies complex 
 
 ## Manasi can help you:
 
+* FOr answering the question realte dto Manascience or giv th information about it.
+*  For the guide of Manascience
 * Understand neuroplasticity and how the brain changes and learns.
 * Learn about conditions, therapies, and programs.
 * Explore research in simple language.

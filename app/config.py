@@ -39,6 +39,10 @@ class Settings:
     empathy_max_length_ratio: float = float(os.getenv("EMPATHY_MAX_LENGTH_RATIO", "2.5"))
     empathy_fact_retention_min_ratio: float = float(os.getenv("EMPATHY_FACT_RETENTION_MIN_RATIO", "0.9"))
 
+    safety_model: str = os.getenv("SAFETY_MODEL", "gpt-4o-mini")
+    safety_temperature: float = float(os.getenv("SAFETY_TEMPERATURE", "0.1"))
+    safety_max_retries: int = int(os.getenv("SAFETY_MAX_RETRIES", "1"))
+
     def validate(self) -> None:
         if not self.openai_api_key:
             raise RuntimeError(
