@@ -56,6 +56,15 @@ class Knowledge(TypedDict):
     error: Optional[str]
 
 
+class CTA(TypedDict):
+    matched: bool
+    cta_key: Optional[str]
+    cta_url: Optional[str]
+    source_chunk_id: Optional[str]
+    lookup_time_ms: float
+    error: Optional[str]
+
+
 class Response(TypedDict):
     answer: str
     source: Literal["rag", "llm"]
@@ -177,6 +186,7 @@ class GraphState(TypedDict):
     chat_history: list[ChatTurn]
     understanding: Optional[Understanding]
     knowledge: Optional[Knowledge]
+    cta: Optional[CTA]
     response: Optional[Response]
     content_optimization: Optional[ContentOptimization]
     empathy: Optional[Empathy]

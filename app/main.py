@@ -9,6 +9,7 @@ from app.models import (
     ChatRequest,
     ChatResponse,
     ContentOptimizationResponse,
+    CTAResponse,
     HumanizeResponse,
     KnowledgeResponse,
     SafetyResponse,
@@ -16,6 +17,7 @@ from app.models import (
     UnderstandResponse,
 )
 from app.nodes.content_optimization_node import build_content_optimization_graph
+from app.nodes.cta_node import build_cta_graph
 from app.nodes.empathy_node import build_empathy_graph
 from app.nodes.knowledge_node import build_knowledge_graph
 from app.nodes.response_node import build_response_graph
@@ -28,6 +30,7 @@ MAX_HISTORY_TURNS = 6
 chat_chain = None
 understanding_graph = None
 knowledge_graph = None
+cta_graph = None
 response_graph = None
 content_optimization_graph = None
 empathy_graph = None
@@ -37,11 +40,12 @@ session_histories: dict[str, list] = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global chat_chain, understanding_graph, knowledge_graph, response_graph, content_optimization_graph, empathy_graph, safety_graph
+    global chat_chain, understanding_graph, knowledge_graph, cta_graph, response_graph, content_optimization_graph, empathy_graph, safety_graph
     settings.validate()
     chat_chain = build_chain()
     understanding_graph = build_understanding_graph()
     knowledge_graph = build_knowledge_graph()
+    cta_graph = build_cta_graph()
     response_graph = build_response_graph()
     content_optimization_graph = build_content_optimization_graph()
     empathy_graph = build_empathy_graph()
@@ -122,6 +126,24 @@ def knowledge(request: ChatRequest):
         }
     )
     return KnowledgeResponse(**result["knowledge"])
+
+
+@app.post("/cta", response_model=CTAResponse)
+def cta_endpoint(request: ChatRequest):
+    if cta_graph is None:
+        raise HTTPException(status_code=503, detail="CTA node is still starting up")
+
+    history = session_histories.get(request.session_id, [])
+    result = cta_graph.invoke(
+        {
+            "user_message": request.message,
+            "chat_history": _history_to_chat_turns(history),
+            "understanding": None,
+            "knowledge": None,
+            "cta": None,
+        }
+    )
+    return CTAResponse(**result["cta"])
 
 
 @app.post("/respond", response_model=AnswerResponse)

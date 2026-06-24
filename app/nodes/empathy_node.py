@@ -99,6 +99,7 @@ def build_empathy_graph():
     from langgraph.graph import END, START, StateGraph
 
     from app.nodes.content_optimization_node import content_optimization_node
+    from app.nodes.cta_node import cta_node
     from app.nodes.knowledge_node import knowledge_node
     from app.nodes.response_node import response_node
     from app.nodes.understanding_node import understanding_node
@@ -106,12 +107,14 @@ def build_empathy_graph():
     graph = StateGraph(GraphState)
     graph.add_node("understanding_node", understanding_node)
     graph.add_node("knowledge_node", knowledge_node)
+    graph.add_node("cta_node", cta_node)
     graph.add_node("response_node", response_node)
     graph.add_node("content_optimization_node", content_optimization_node)
     graph.add_node("empathy_node", empathy_node)
     graph.add_edge(START, "understanding_node")
     graph.add_edge("understanding_node", "knowledge_node")
-    graph.add_edge("knowledge_node", "response_node")
+    graph.add_edge("knowledge_node", "cta_node")
+    graph.add_edge("cta_node", "response_node")
     graph.add_edge("response_node", "content_optimization_node")
     graph.add_edge("content_optimization_node", "empathy_node")
     graph.add_edge("empathy_node", END)

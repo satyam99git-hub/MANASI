@@ -116,15 +116,18 @@ def build_response_graph():
     Phase 3 isolated testing/deployment."""
     from langgraph.graph import END, START, StateGraph
 
+    from app.nodes.cta_node import cta_node
     from app.nodes.knowledge_node import knowledge_node
     from app.nodes.understanding_node import understanding_node
 
     graph = StateGraph(GraphState)
     graph.add_node("understanding_node", understanding_node)
     graph.add_node("knowledge_node", knowledge_node)
+    graph.add_node("cta_node", cta_node)
     graph.add_node("response_node", response_node)
     graph.add_edge(START, "understanding_node")
     graph.add_edge("understanding_node", "knowledge_node")
-    graph.add_edge("knowledge_node", "response_node")
+    graph.add_edge("knowledge_node", "cta_node")
+    graph.add_edge("cta_node", "response_node")
     graph.add_edge("response_node", END)
     return graph.compile()

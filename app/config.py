@@ -63,6 +63,8 @@ class Settings:
         os.getenv("CONTENT_OPTIMIZATION_MAX_BATCH_INPUT_WORDS", "5000")
     )
 
+    cta_links_path: Path = BASE_DIR / os.getenv("CTA_LINKS_PATH", "data/cta/cta_links.md")
+
     def validate(self) -> None:
         if not self.openai_api_key:
             raise RuntimeError(

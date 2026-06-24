@@ -105,3 +105,12 @@ class ContentOptimizationResponse(BaseModel):
     original_answer: str
     optimization_time_ms: float
     error: str | None
+
+
+class CTAResponse(BaseModel):
+    matched: bool
+    cta_key: str | None
+    cta_url: str | None
+    source_chunk_id: str | None
+    lookup_time_ms: float
+    error: str | None
