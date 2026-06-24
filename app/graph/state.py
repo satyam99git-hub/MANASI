@@ -32,9 +32,9 @@ class RetrievedDocument(TypedDict):
         "blog",
         "research_article",
         "faq",
-        "practitioner_info",
-        "therapy_info",
-        "website_content",
+        "practit_info",
+        "websitioner_info",
+        "therapye_content",
         "neuroplasticity_content",
         "pdf_document",
     ]
@@ -101,6 +101,35 @@ class Empathy(TypedDict):
     error: Optional[str]
 
 
+class Safety(TypedDict):
+    safe_response: str
+    safety_status: Literal["approved", "modified", "escalated"]
+    violations_detected: list[str]
+    escalation_level: Literal["none", "moderate", "high"]
+    disclaimer_added: bool
+    original_final_answer: str
+    emotional_state: Literal[
+        "neutral", "curious", "confused", "worried", "overwhelmed", "frustrated"
+    ]
+    source: Literal["rag", "llm"]
+    answer_type: Literal[
+        "concept_explanation",
+        "therapy_information",
+        "course_information",
+        "research_summary",
+        "website_information",
+        "personal_guidance",
+        "supportive_information",
+        "general_knowledge",
+    ]
+    topic: str
+    intent: str
+    confidence: float
+    grounded_chunk_ids: list[str]
+    validation_time_ms: float
+    error: Optional[str]
+
+
 class GraphState(TypedDict):
     user_message: str
     chat_history: list[ChatTurn]
@@ -108,3 +137,4 @@ class GraphState(TypedDict):
     knowledge: Optional[Knowledge]
     response: Optional[Response]
     empathy: Optional[Empathy]
+    safety: Optional[Safety]

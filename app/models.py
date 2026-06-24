@@ -68,3 +68,21 @@ class HumanizeResponse(BaseModel):
     grounded_chunk_ids: list[str]
     humanization_time_ms: float
     error: str | None
+
+
+class SafetyResponse(BaseModel):
+    safe_response: str
+    safety_status: str
+    violations_detected: list[str]
+    escalation_level: str
+    disclaimer_added: bool
+    original_final_answer: str
+    emotional_state: str
+    source: str
+    answer_type: str
+    topic: str
+    intent: str
+    confidence: float
+    grounded_chunk_ids: list[str]
+    validation_time_ms: float
+    error: str | None

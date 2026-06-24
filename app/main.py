@@ -10,12 +10,14 @@ from app.models import (
     ChatResponse,
     HumanizeResponse,
     KnowledgeResponse,
+    SafetyResponse,
     SourceChunk,
     UnderstandResponse,
 )
 from app.nodes.empathy_node import build_empathy_graph
 from app.nodes.knowledge_node import build_knowledge_graph
 from app.nodes.response_node import build_response_graph
+from app.nodes.safety_node import build_safety_graph
 from app.nodes.understanding_node import build_understanding_graph
 from app.rag.chain import build_chain
 
@@ -26,18 +28,20 @@ understanding_graph = None
 knowledge_graph = None
 response_graph = None
 empathy_graph = None
+safety_graph = None
 session_histories: dict[str, list] = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global chat_chain, understanding_graph, knowledge_graph, response_graph, empathy_graph
+    global chat_chain, understanding_graph, knowledge_graph, response_graph, empathy_graph, safety_graph
     settings.validate()
     chat_chain = build_chain()
     understanding_graph = build_understanding_graph()
     knowledge_graph = build_knowledge_graph()
     response_graph = build_response_graph()
     empathy_graph = build_empathy_graph()
+    safety_graph = build_safety_graph()
     yield
 
 
@@ -151,6 +155,26 @@ def humanize(request: ChatRequest):
         }
     )
     return HumanizeResponse(**result["empathy"])
+
+
+@app.post("/safety", response_model=SafetyResponse)
+def safety(request: ChatRequest):
+    if safety_graph is None:
+        raise HTTPException(status_code=503, detail="Safety node is still starting up")
+
+    history = session_histories.get(request.session_id, [])
+    result = safety_graph.invoke(
+        {
+            "user_message": request.message,
+            "chat_history": _history_to_chat_turns(history),
+            "understanding": None,
+            "knowledge": None,
+            "response": None,
+            "empathy": None,
+            "safety": None,
+        }
+    )
+    return SafetyResponse(**result["safety"])
 
 
 if __name__ == "__main__":
