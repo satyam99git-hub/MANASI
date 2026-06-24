@@ -218,13 +218,13 @@ def _invoke(llm: Any, prompt: str) -> str:
 def humanize_response(
     response: dict, emotional_state: str, llm: Optional[Any] = None
 ) -> dict:
-    """Rewrite response['answer'] into a warm, structured final_answer for the given
-    emotional_state.
+    """Rewrite response['summary'] (the Phase 6 Content Optimization Node's output)
+    into a warm, structured final_answer for the given emotional_state.
 
     Never raises -- always returns a complete dict matching the Empathy schema
     (Section 9.2), minus `humanization_time_ms`, which the calling node times itself.
     """
-    answer = response["answer"]
+    answer = response["summary"]
     llm = llm or _build_llm()
     attempts: list[_Attempt] = []
     extra_suffix = ""

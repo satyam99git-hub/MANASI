@@ -43,6 +43,26 @@ class Settings:
     safety_temperature: float = float(os.getenv("SAFETY_TEMPERATURE", "0.1"))
     safety_max_retries: int = int(os.getenv("SAFETY_MAX_RETRIES", "1"))
 
+    content_optimization_model: str = os.getenv("CONTENT_OPTIMIZATION_MODEL", "gpt-4o-mini")
+    content_optimization_temperature: float = float(os.getenv("CONTENT_OPTIMIZATION_TEMPERATURE", "0.2"))
+    content_optimization_max_retries: int = int(os.getenv("CONTENT_OPTIMIZATION_MAX_RETRIES", "1"))
+    content_optimization_skip_min_words: int = int(os.getenv("CONTENT_OPTIMIZATION_SKIP_MIN_WORDS", "12"))
+    content_optimization_summary_min_words: int = int(os.getenv("CONTENT_OPTIMIZATION_SUMMARY_MIN_WORDS", "50"))
+    content_optimization_summary_max_words: int = int(os.getenv("CONTENT_OPTIMIZATION_SUMMARY_MAX_WORDS", "200"))
+    content_optimization_description_min_words: int = int(os.getenv("CONTENT_OPTIMIZATION_DESCRIPTION_MIN_WORDS", "50"))
+    content_optimization_description_max_words: int = int(os.getenv("CONTENT_OPTIMIZATION_DESCRIPTION_MAX_WORDS", "200"))
+    content_optimization_key_points_min: int = int(os.getenv("CONTENT_OPTIMIZATION_KEY_POINTS_MIN", "3"))
+    content_optimization_key_points_max: int = int(os.getenv("CONTENT_OPTIMIZATION_KEY_POINTS_MAX", "7"))
+    content_optimization_fact_retention_min_ratio: float = float(
+        os.getenv("CONTENT_OPTIMIZATION_FACT_RETENTION_MIN_RATIO", "0.6")
+    )
+    content_optimization_fabrication_max_ratio: float = float(
+        os.getenv("CONTENT_OPTIMIZATION_FABRICATION_MAX_RATIO", "0.1")
+    )
+    content_optimization_max_batch_input_words: int = int(
+        os.getenv("CONTENT_OPTIMIZATION_MAX_BATCH_INPUT_WORDS", "5000")
+    )
+
     def validate(self) -> None:
         if not self.openai_api_key:
             raise RuntimeError(
