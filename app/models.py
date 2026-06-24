@@ -86,3 +86,22 @@ class SafetyResponse(BaseModel):
     grounded_chunk_ids: list[str]
     validation_time_ms: float
     error: str | None
+
+
+class ContentOptimizationResponse(BaseModel):
+    title: str | None
+    summary: str
+    description: str
+    key_points: list[str]
+    content_type: str
+    source_type: str
+    confidence_score: float
+    source: str
+    answer_type: str
+    topic: str
+    intent: str
+    confidence: float
+    grounded_chunk_ids: list[str]
+    original_answer: str
+    optimization_time_ms: float
+    error: str | None
