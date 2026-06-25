@@ -14,15 +14,6 @@ from app.rag.embeddings import get_embeddings  # noqa: E402
 
 BATCH_SIZE = 100
 
-# Manually maintained, in sync with data/cta/cta_links.md (spec Section 7.1) -- maps a
-# therapy chunk's extracted heading to the exact CTA registry key it corresponds to.
-# Headings with no entry here get cta_key=None, i.e. no CTA for that chunk.
-THERAPY_HEADING_TO_CTA_KEY = {
-    "MNRI® (Masgutova Neurosensorimotor Reflex Integration)": "mnri",
-    "Arrowsmith Program®": "arrowsmith",
-    "Neurofeedback": "neurofeedback",
-}
-
 
 def _split_on_dash_separator(text: str) -> list[str]:
     """Split on lines containing only '---', tolerant of surrounding blank-line padding."""
@@ -86,7 +77,6 @@ def load_therapy_chunks(path: Path) -> list[dict]:
                     "therapy_name": therapy_name,
                     "age_group": "",
                     "conditions_addressed": "",
-                    "cta_key": THERAPY_HEADING_TO_CTA_KEY.get(therapy_name),
                 },
             }
         )
