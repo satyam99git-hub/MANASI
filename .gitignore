@@ -4,5 +4,3 @@ __pycache__/
 *.pyc
 vectorstore/
 chroma_store/
-
-tech stack.txt/

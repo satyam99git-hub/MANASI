@@ -8,14 +8,12 @@ from app.models import (
     AnswerResponse,
     ChatRequest,
     ChatResponse,
-    ContentOptimizationResponse,
     HumanizeResponse,
     KnowledgeResponse,
     SafetyResponse,
     SourceChunk,
     UnderstandResponse,
 )
-from app.nodes.content_optimization_node import build_content_optimization_graph
 from app.nodes.empathy_node import build_empathy_graph
 from app.nodes.knowledge_node import build_knowledge_graph
 from app.nodes.response_node import build_response_graph
@@ -29,7 +27,6 @@ chat_chain = None
 understanding_graph = None
 knowledge_graph = None
 response_graph = None
-content_optimization_graph = None
 empathy_graph = None
 safety_graph = None
 session_histories: dict[str, list] = {}
@@ -37,13 +34,12 @@ session_histories: dict[str, list] = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global chat_chain, understanding_graph, knowledge_graph, response_graph, content_optimization_graph, empathy_graph, safety_graph
+    global chat_chain, understanding_graph, knowledge_graph, response_graph, empathy_graph, safety_graph
     settings.validate()
     chat_chain = build_chain()
     understanding_graph = build_understanding_graph()
     knowledge_graph = build_knowledge_graph()
     response_graph = build_response_graph()
-    content_optimization_graph = build_content_optimization_graph()
     empathy_graph = build_empathy_graph()
     safety_graph = build_safety_graph()
     yield
@@ -142,25 +138,6 @@ def respond(request: ChatRequest):
     return AnswerResponse(**result["response"])
 
 
-@app.post("/optimize-content", response_model=ContentOptimizationResponse)
-def optimize_content_endpoint(request: ChatRequest):
-    if content_optimization_graph is None:
-        raise HTTPException(status_code=503, detail="Content optimization node is still starting up")
-
-    history = session_histories.get(request.session_id, [])
-    result = content_optimization_graph.invoke(
-        {
-            "user_message": request.message,
-            "chat_history": _history_to_chat_turns(history),
-            "understanding": None,
-            "knowledge": None,
-            "response": None,
-            "content_optimization": None,
-        }
-    )
-    return ContentOptimizationResponse(**result["content_optimization"])
-
-
 @app.post("/humanize", response_model=HumanizeResponse)
 def humanize(request: ChatRequest):
     if empathy_graph is None:
@@ -174,7 +151,6 @@ def humanize(request: ChatRequest):
             "understanding": None,
             "knowledge": None,
             "response": None,
-            "content_optimization": None,
             "empathy": None,
         }
     )
@@ -194,7 +170,6 @@ def safety(request: ChatRequest):
             "understanding": None,
             "knowledge": None,
             "response": None,
-            "content_optimization": None,
             "empathy": None,
             "safety": None,
         }
