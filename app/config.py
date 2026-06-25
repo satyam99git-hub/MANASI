@@ -43,6 +43,8 @@ class Settings:
     safety_temperature: float = float(os.getenv("SAFETY_TEMPERATURE", "0.1"))
     safety_max_retries: int = int(os.getenv("SAFETY_MAX_RETRIES", "1"))
 
+    cta_data_dir: Path = BASE_DIR / os.getenv("CTA_DATA_DIR", "data/cta")
+
     def validate(self) -> None:
         if not self.openai_api_key:
             raise RuntimeError(
