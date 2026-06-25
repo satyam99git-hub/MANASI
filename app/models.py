@@ -14,6 +14,7 @@ class SourceChunk(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     sources: list[SourceChunk]
+    cta: "CTAResponse"
 
 
 class UnderstandResponse(BaseModel):
@@ -85,4 +86,17 @@ class SafetyResponse(BaseModel):
     confidence: float
     grounded_chunk_ids: list[str]
     validation_time_ms: float
+    error: str | None
+
+
+class CTAResponse(BaseModel):
+    cta_found: bool
+    cta_id: str | None
+    cta_url: str | None
+    cta_trigger: str | None
+    cta_category: str | None
+    match_reason: str
+    matched_phrase: str | None
+    response: str
+    lookup_time_ms: float
     error: str | None

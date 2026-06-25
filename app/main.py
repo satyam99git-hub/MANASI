@@ -8,12 +8,14 @@ from app.models import (
     AnswerResponse,
     ChatRequest,
     ChatResponse,
+    CTAResponse,
     HumanizeResponse,
     KnowledgeResponse,
     SafetyResponse,
     SourceChunk,
     UnderstandResponse,
 )
+from app.nodes.cta_node import build_cta_graph, cta_node
 from app.nodes.empathy_node import build_empathy_graph
 from app.nodes.knowledge_node import build_knowledge_graph
 from app.nodes.response_node import build_response_graph
@@ -29,12 +31,13 @@ knowledge_graph = None
 response_graph = None
 empathy_graph = None
 safety_graph = None
+cta_graph = None
 session_histories: dict[str, list] = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global chat_chain, understanding_graph, knowledge_graph, response_graph, empathy_graph, safety_graph
+    global chat_chain, understanding_graph, knowledge_graph, response_graph, empathy_graph, safety_graph, cta_graph
     settings.validate()
     chat_chain = build_chain()
     understanding_graph = build_understanding_graph()
@@ -42,6 +45,7 @@ async def lifespan(app: FastAPI):
     response_graph = build_response_graph()
     empathy_graph = build_empathy_graph()
     safety_graph = build_safety_graph()
+    cta_graph = build_cta_graph()
     yield
 
 
@@ -70,7 +74,10 @@ def chat(request: ChatRequest):
         SourceChunk(source=doc.metadata.get("source", "unknown"), content=doc.page_content)
         for doc in result.get("context", [])
     ]
-    return ChatResponse(answer=result["answer"], sources=sources)
+    cta_result = cta_node(
+        {"user_message": request.message, "understanding": None, "safety": {"safe_response": result["answer"]}}
+    )["cta"]
+    return ChatResponse(answer=result["answer"], sources=sources, cta=CTAResponse(**cta_result))
 
 
 @app.delete("/chat/{session_id}")
@@ -175,6 +182,27 @@ def safety(request: ChatRequest):
         }
     )
     return SafetyResponse(**result["safety"])
+
+
+@app.post("/cta", response_model=CTAResponse)
+def cta(request: ChatRequest):
+    if cta_graph is None:
+        raise HTTPException(status_code=503, detail="CTA node is still starting up")
+
+    history = session_histories.get(request.session_id, [])
+    result = cta_graph.invoke(
+        {
+            "user_message": request.message,
+            "chat_history": _history_to_chat_turns(history),
+            "understanding": None,
+            "knowledge": None,
+            "response": None,
+            "empathy": None,
+            "safety": None,
+            "cta": None,
+        }
+    )
+    return CTAResponse(**result["cta"])
 
 
 if __name__ == "__main__":

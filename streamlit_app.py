@@ -39,6 +39,9 @@ with st.sidebar:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+        if message.get("cta"):
+            cta = message["cta"]
+            st.link_button(cta["cta_trigger"], cta["cta_url"])
         if message.get("sources"):
             with st.expander("Sources"):
                 for source in message["sources"]:
@@ -62,13 +65,21 @@ if prompt := st.chat_input("Ask Manasi about ManaScience..."):
             data = response.json()
             answer = data["answer"]
             sources = data.get("sources", [])
+            cta = data.get("cta")
             placeholder.markdown(answer)
+            if cta and cta.get("cta_found"):
+                st.link_button(cta["cta_trigger"], cta["cta_url"])
             if sources:
                 with st.expander("Sources"):
                     for source in sources:
                         st.markdown(f"**{source['source']}**\n\n{source['content']}")
             st.session_state.messages.append(
-                {"role": "assistant", "content": answer, "sources": sources}
+                {
+                    "role": "assistant",
+                    "content": answer,
+                    "sources": sources,
+                    "cta": cta if cta and cta.get("cta_found") else None,
+                }
             )
         except requests.RequestException as exc:
             error_text = f"Could not reach Manasi's backend: {exc}"

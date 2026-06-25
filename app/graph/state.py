@@ -130,6 +130,19 @@ class Safety(TypedDict):
     error: Optional[str]
 
 
+class CTA(TypedDict):
+    cta_found: bool
+    cta_id: Optional[str]
+    cta_url: Optional[str]
+    cta_trigger: Optional[str]
+    cta_category: Optional[str]
+    match_reason: Literal["specific_match", "category_fallback", "no_match"]
+    matched_phrase: Optional[str]
+    response: str
+    lookup_time_ms: float
+    error: Optional[str]
+
+
 class GraphState(TypedDict):
     user_message: str
     chat_history: list[ChatTurn]
@@ -138,3 +151,4 @@ class GraphState(TypedDict):
     response: Optional[Response]
     empathy: Optional[Empathy]
     safety: Optional[Safety]
+    cta: Optional[CTA]
