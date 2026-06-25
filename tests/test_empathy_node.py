@@ -90,8 +90,8 @@ MULTI_FAIL_FINAL_ANSWER = "Your brain can change a lot over your whole life."
 MALFORMED_OUTPUT = "Sure, here's my answer: the brain can change!"
 
 
-def make_content_optimization(
-    summary=CLEAN_ANSWER,
+def make_response(
+    answer=CLEAN_ANSWER,
     source="rag",
     answer_type="concept_explanation",
     topic="neuroplasticity",
@@ -100,21 +100,14 @@ def make_content_optimization(
     grounded_chunk_ids=None,
 ):
     return {
-        "title": "Understanding Neuroplasticity",
-        "summary": summary,
-        "description": summary,
-        "key_points": ["Neuroplasticity lets the brain form new connections"],
-        "content_type": "neuroplasticity_content",
-        "source_type": source,
-        "confidence_score": 0.95,
+        "answer": answer,
         "source": source,
         "answer_type": answer_type,
         "topic": topic,
         "intent": intent,
         "confidence": confidence,
         "grounded_chunk_ids": grounded_chunk_ids if grounded_chunk_ids is not None else ["c1"],
-        "original_answer": summary,
-        "optimization_time_ms": 100.0,
+        "generation_time_ms": 100.0,
         "error": None,
     }
 
@@ -128,34 +121,31 @@ def make_understanding(emotional_state="curious"):
     }
 
 
-def make_state(content_optimization=None, understanding=None, user_message="What is neuroplasticity?"):
+def make_state(response=None, understanding=None, user_message="What is neuroplasticity?"):
     return {
         "user_message": user_message,
         "chat_history": [],
         "understanding": understanding if understanding is not None else make_understanding(),
         "knowledge": None,
-        "response": None,
-        "content_optimization": content_optimization if content_optimization is not None else make_content_optimization(),
+        "response": response if response is not None else make_response(),
         "empathy": None,
     }
 
 
 def test_happy_path_passes_through_all_response_fields():
     llm = FakeLLM([final_answer_json(CLEAN_FINAL_ANSWER)])
-    content_optimization = make_content_optimization()
+    response = make_response()
     understanding = make_understanding(emotional_state="worried")
-    result = empathy_node(
-        make_state(content_optimization=content_optimization, understanding=understanding), llm=llm
-    )["empathy"]
+    result = empathy_node(make_state(response=response, understanding=understanding), llm=llm)["empathy"]
     assert result["final_answer"] == CLEAN_FINAL_ANSWER
-    assert result["final_answer"] != content_optimization["summary"]
+    assert result["final_answer"] != response["answer"]
     assert result["emotional_state"] == "worried"
-    assert result["source"] == content_optimization["source"]
-    assert result["answer_type"] == content_optimization["answer_type"]
-    assert result["topic"] == content_optimization["topic"]
-    assert result["intent"] == content_optimization["intent"]
-    assert result["confidence"] == content_optimization["confidence"]
-    assert result["grounded_chunk_ids"] == content_optimization["grounded_chunk_ids"]
+    assert result["source"] == response["source"]
+    assert result["answer_type"] == response["answer_type"]
+    assert result["topic"] == response["topic"]
+    assert result["intent"] == response["intent"]
+    assert result["confidence"] == response["confidence"]
+    assert result["grounded_chunk_ids"] == response["grounded_chunk_ids"]
     assert result["error"] is None
     assert len(llm.calls) == 1
 
@@ -230,9 +220,9 @@ def test_both_attempts_fail_guard_falls_back_to_verbatim_answer():
     llm = FakeLLM(
         [final_answer_json(FACT_DROP_FINAL_ANSWER), final_answer_json(FACT_DROP_FINAL_ANSWER)]
     )
-    content_optimization = make_content_optimization()
-    result = empathy_node(make_state(content_optimization=content_optimization), llm=llm)["empathy"]
-    assert result["final_answer"] == content_optimization["summary"]
+    response = make_response()
+    result = empathy_node(make_state(response=response), llm=llm)["empathy"]
+    assert result["final_answer"] == response["answer"]
     assert result["error"] == "quality_guard_exhausted"
     assert len(llm.calls) == 2
 
@@ -240,9 +230,9 @@ def test_both_attempts_fail_guard_falls_back_to_verbatim_answer():
 def test_both_llm_calls_raise_falls_back_with_llm_call_failure():
     exc = openai.APIConnectionError(request=httpx.Request("POST", "https://api.openai.com/v1/chat/completions"))
     llm = FakeLLM([exc, exc])
-    content_optimization = make_content_optimization()
-    result = empathy_node(make_state(content_optimization=content_optimization), llm=llm)["empathy"]
-    assert result["final_answer"] == content_optimization["summary"]
+    response = make_response()
+    result = empathy_node(make_state(response=response), llm=llm)["empathy"]
+    assert result["final_answer"] == response["answer"]
     assert result["error"] == "llm_call_failure"
     assert len(llm.calls) == 2
 
@@ -250,9 +240,9 @@ def test_both_llm_calls_raise_falls_back_with_llm_call_failure():
 def test_mixed_failure_first_raises_second_fails_guard_is_quality_guard_exhausted():
     exc = openai.APIConnectionError(request=httpx.Request("POST", "https://api.openai.com/v1/chat/completions"))
     llm = FakeLLM([exc, final_answer_json(FACT_DROP_FINAL_ANSWER)])
-    content_optimization = make_content_optimization()
-    result = empathy_node(make_state(content_optimization=content_optimization), llm=llm)["empathy"]
-    assert result["final_answer"] == content_optimization["summary"]
+    response = make_response()
+    result = empathy_node(make_state(response=response), llm=llm)["empathy"]
+    assert result["final_answer"] == response["answer"]
     assert result["error"] == "quality_guard_exhausted"
     assert len(llm.calls) == 2
 
@@ -267,14 +257,14 @@ def test_malformed_json_first_attempt_triggers_retry_then_succeeds():
 
 
 def test_does_not_mutate_input_state():
-    content_optimization = make_content_optimization()
+    response = make_response()
     understanding = make_understanding()
-    state = make_state(content_optimization=content_optimization, understanding=understanding)
-    original_content_optimization = dict(content_optimization)
+    state = make_state(response=response, understanding=understanding)
+    original_response = dict(response)
     original_understanding = dict(understanding)
     llm = FakeLLM([final_answer_json(CLEAN_FINAL_ANSWER)])
     empathy_node(state, llm=llm)
-    assert state["content_optimization"] == original_content_optimization
+    assert state["response"] == original_response
     assert state["understanding"] == original_understanding
 
 

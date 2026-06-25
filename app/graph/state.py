@@ -77,48 +77,6 @@ class Response(TypedDict):
     error: Optional[str]
 
 
-class ContentOptimization(TypedDict):
-    title: Optional[str]
-    summary: str
-    description: str
-    key_points: list[str]
-    content_type: Literal[
-        "course",
-        "blog",
-        "research_article",
-        "faq",
-        "practitioner_info",
-        "therapy_info",
-        "website_content",
-        "neuroplasticity_content",
-        "pdf_document",
-        "llm_generated",
-        "mixed",
-    ]
-    source_type: Literal[
-        "rag", "llm", "mixed_rag_llm", "markdown", "webflow_cms", "chromadb", "api"
-    ]
-    confidence_score: float
-    source: Literal["rag", "llm"]
-    answer_type: Literal[
-        "concept_explanation",
-        "therapy_information",
-        "course_information",
-        "research_summary",
-        "website_information",
-        "personal_guidance",
-        "supportive_information",
-        "general_knowledge",
-    ]
-    topic: str
-    intent: str
-    confidence: float
-    grounded_chunk_ids: list[str]
-    original_answer: str
-    optimization_time_ms: float
-    error: Optional[str]
-
-
 class Empathy(TypedDict):
     final_answer: str
     emotional_state: Literal[
@@ -178,6 +136,5 @@ class GraphState(TypedDict):
     understanding: Optional[Understanding]
     knowledge: Optional[Knowledge]
     response: Optional[Response]
-    content_optimization: Optional[ContentOptimization]
     empathy: Optional[Empathy]
     safety: Optional[Safety]
