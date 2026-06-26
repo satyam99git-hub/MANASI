@@ -90,7 +90,6 @@ Trigger Examples:
 - Open FAQ
 - Browse FAQ
 - Show FAQs
-- Help
 - Help Center
 - Support Center
 - Knowledge Base
@@ -104,14 +103,11 @@ Aliases:
 - Help Center
 - Support Center
 - Knowledge Base
-- Help
 - Common Questions
 - User Guide
 
 Related Topics:
 
-- Help
-- Support
 - Documentation
 - Questions
 - Platform

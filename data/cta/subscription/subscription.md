@@ -40,6 +40,8 @@ Trigger Examples:
 - Do I need a subscription?
 - Do you offer subscriptions?
 - Is ManaScience free?
+- Is ManaScience paid?
+- Does ManaScience cost money?
 - Do I have to pay?
 - What plans do you offer?
 

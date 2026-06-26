@@ -65,6 +65,7 @@ Trigger Examples:
 - My child struggles with writing.
 - My child has learning difficulties.
 - My child has developmental delays.
+- My child has a developmental delay.
 - My child has speech delays.
 - My child isn't speaking.
 - My child avoids eye contact.
@@ -78,6 +79,22 @@ Trigger Examples:
 - My child has communication difficulties.
 - My child has difficulty learning.
 - My child misses developmental milestones.
+- My son has trouble focusing.
+- My son struggles with reading.
+- My son has trouble reading.
+- My son has learning difficulties.
+- My son struggles in school.
+- My son can't focus.
+- My daughter has trouble focusing.
+- My daughter struggles with reading.
+- My daughter has trouble reading.
+- My daughter has learning difficulties.
+- My daughter can't focus.
+- My daughter struggles in school.
+- My kid has trouble focusing.
+- My kid struggles with reading.
+- My kid has learning difficulties.
+- My kid struggles in school.
 
 ## Parent & Caregiver Questions
 
@@ -92,7 +109,7 @@ Trigger Examples:
 - I'm not sure what's going on.
 - I don't know what condition this might be.
 - Can you help me understand possible conditions?
-- I need help understanding my child's challenges.
+- I need guidance understanding my child's challenges.
 
 ## Diagnosis Exploration
 
@@ -131,6 +148,9 @@ Aliases:
 - Developmental Disorder
 - Learning Disorder
 - Learning Difficulty
+- Learning Difficulties
+- Developmental Delay
+- Developmental Delays
 - Neurological Condition
 - Neurodevelopmental Condition
 - Developmental Challenge
@@ -168,7 +188,6 @@ Examples:
 - Tourette Syndrome
 - Sensory Processing Disorder
 - Speech Delay
-- Developmental Delay
 - Cerebral Palsy
 - Down Syndrome
 - Epilepsy

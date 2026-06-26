@@ -149,6 +149,46 @@ class CTAMatch:
     matched_phrase: Optional[str]
 
 
+# Centralized greeting/small-talk guard (spec: greetings must never reach CTA
+# scoring). Lives here -- not in any CTA markdown file -- because it is a
+# property of the *message*, not of any individual CTA's match rule, and the
+# Understanding Node's intent taxonomy has no greeting/small-talk/
+# acknowledgement category to key off of (its only catch-all, "general_chat",
+# is too broad: plenty of genuine general_chat messages still deserve a CTA).
+_RAW_GREETING_PHRASES = [
+    "good morning", "good afternoon", "good evening",
+    "how are you", "how is it going", "how's it going", "what's up", "whats up",
+    "thanks", "thank you", "thanks a lot", "thank you so much", "many thanks",
+    "ok", "okay", "kk", "cool", "nice", "great", "awesome",
+    "bye", "goodbye", "good bye", "see you", "see ya", "see you later", "take care",
+]
+_GREETING_PHRASES = {_normalize(p) for p in _RAW_GREETING_PHRASES}
+
+# Elongated/typo'd greeting interjections ("hy", "hii", "heyy", "yooo", ...)
+# are matched by pattern instead of being enumerated.
+_GREETING_PATTERNS = (
+    re.compile(r"^h+i+$"),  # hi, hii, hiii, hiiii
+    re.compile(r"^h+e*y+$"),  # hy, hey, heyy (e* also covers the "hy" typo)
+    re.compile(r"^h+e+l+o+$"),  # hello, helloo
+    re.compile(r"^y+o+$"),  # yo, yoo
+)
+
+
+def _is_greeting_or_small_talk(user_message: str) -> bool:
+    """True for greetings, small talk, and acknowledgements ("hi", "thanks",
+    "bye", a bare emoji, ...) that must never carry a CTA regardless of what
+    they'd otherwise score against. Normalizes the same way candidate phrases
+    do, so a message with no a-z0-9 characters at all (pure emoji/punctuation,
+    e.g. "\U0001F44B") normalizes to "" and is treated as small talk too --
+    there are no words in it for any CTA to legitimately match."""
+    text_norm = _normalize(user_message)
+    if not text_norm:
+        return True
+    if text_norm in _GREETING_PHRASES:
+        return True
+    return any(pattern.match(text_norm) for pattern in _GREETING_PATTERNS)
+
+
 def find_cta(
     user_message: str, understanding: dict, candidates: list[CTARecord]
 ) -> Optional[CTAMatch]:
@@ -156,7 +196,11 @@ def find_cta(
     against the user's message and topic, resolves category and
     specific-vs-general ties, and falls back to an intent-driven category CTA
     when nothing scores at all. Never raises; a missing match is `None`, not
-    an exception."""
+    an exception. Greetings and small talk short-circuit to `None` before any
+    candidate is scored -- see `_is_greeting_or_small_talk`."""
+    if _is_greeting_or_small_talk(user_message):
+        return None
+
     search_text = f"{user_message} {understanding.get('topic', '')}"
     text_norm = _normalize(search_text)
     text_tokens = set(text_norm.split())
