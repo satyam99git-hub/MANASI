@@ -140,6 +140,7 @@ Aliases:
 - Brain Adaptation
 - Brain Change
 - Neural Rewiring
+- Brain Development
 
 Related Topics:
 
@@ -153,7 +154,6 @@ Related Topics:
 - Rehabilitation
 - Cognitive Development
 - ADHD
-- Autism
 - Dyslexia
 - Brain Training
 
@@ -185,4 +185,4 @@ Learn About Neuroplasticity
 
 CTA:
 
-https://landingmanascience.webflow.io/neuroplasiticity
+https://manascience.webflow.io/neuroplasiticity

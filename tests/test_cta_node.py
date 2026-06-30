@@ -9,10 +9,11 @@ import pytest  # noqa: E402
 from pydantic import ValidationError  # noqa: E402
 
 from app.nodes.cta_node import CTAOutput, cta_node  # noqa: E402
-from app.services.cta_loader import CTARecord, reload_cta_data  # noqa: E402
+from app.services.cta_loader import CTARecord, get_all_ctas, reload_cta_data  # noqa: E402
 from app.services.cta_service import (  # noqa: E402
     CTAMatch,
     INTENT_CATEGORY_AFFINITY,
+    _is_greeting_or_small_talk,
     build_cta_response,
     find_cta,
     process,
@@ -481,6 +482,75 @@ def test_cta_output_rejects_found_false_with_nonnull_cta_id():
         )
 
 
+GREETING_ACCEPTANCE_MESSAGES = [
+    "hi", "hello", "hy", "hey", "hii", "hiiii",
+    "good morning", "good afternoon", "good evening",
+    "how are you", "thanks", "thank you",
+    "ok", "okay", "cool", "bye", "goodbye", "see you",
+    "\U0001F44B", "\U0001F60A", "\U0001F44D",  # 👋 😊 👍
+]
+
+
+@pytest.mark.parametrize("message", GREETING_ACCEPTANCE_MESSAGES)
+def test_greeting_guard_blocks_small_talk_before_scoring(message):
+    """A greeting must never score against any CTA, however strong the
+    accidental substring overlap (e.g. "hy" inside "hyperactivity", "ok"
+    inside "looking") would otherwise make it look like a match."""
+    record = make_cta_record(
+        cta_id="conditions/adhd",
+        aliases=["ADHD"],
+        trigger_examples=["Attention Deficit Hyperactivity Disorder", "I'm looking for therapy options."],
+    )
+    assert find_cta(message, make_understanding(intent="general_chat", topic=""), [record]) is None
+
+
+@pytest.mark.parametrize("message", GREETING_ACCEPTANCE_MESSAGES)
+def test_greeting_guard_against_real_corpus(message):
+    """End-to-end through cta_node against the real CTA corpus, with
+    understanding=None -- the exact partial state app/main.py's /chat
+    handler builds, since /chat never runs the Understanding Node."""
+    reload_cta_data()
+    state = {"user_message": message, "understanding": None, "safety": {"safe_response": "some response"}}
+    result = cta_node(state)["cta"]
+    assert result["cta_found"] is False
+    assert result["match_reason"] == "no_match"
+
+
+@pytest.mark.parametrize(
+    "message,expected_cta_id",
+    [
+        ("What is ADHD?", "conditions/adhd"),
+        ("What is Depression?", "conditions/depression"),
+        ("Tell me about therapies.", "therapies/general"),
+        ("Tell me about Neurofeedback.", "therapies/neurofeedback"),
+        ("How do I subscribe?", "subscription/subscription"),
+        ("What is ManaScience?", "about/about"),
+        ("What courses do you offer?", "courses/courses"),
+    ],
+)
+def test_greeting_guard_does_not_affect_real_questions(message, expected_cta_id):
+    """Regression guard: genuine questions must still match, including the
+    ones that happen to be short or share letters with a greeting word."""
+    reload_cta_data()
+    state = {"user_message": message, "understanding": None, "safety": {"safe_response": "some response"}}
+    result = cta_node(state)["cta"]
+    assert result["cta_found"] is True
+    assert result["cta_id"] == expected_cta_id
+
+
+def test_greeting_guard_is_exact_not_substring():
+    """Only a message that IS (after normalization) a greeting is small talk
+    -- one that merely starts with or contains one must still be matched."""
+    assert _is_greeting_or_small_talk("hi, what is ADHD?") is False
+    assert _is_greeting_or_small_talk("ok so what is MNRI therapy?") is False
+
+
+def test_greeting_guard_detects_punctuation_or_emoji_only_messages():
+    assert _is_greeting_or_small_talk("\U0001F44B") is True  # 👋
+    assert _is_greeting_or_small_talk("...") is True
+    assert _is_greeting_or_small_talk("!!!") is True
+
+
 def test_cta_output_rejects_found_false_with_wrong_match_reason():
     with pytest.raises(ValidationError):
         CTAOutput(
@@ -495,3 +565,220 @@ def test_cta_output_rejects_found_false_with_wrong_match_reason():
             lookup_time_ms=1.0,
             error=None,
         )
+
+
+# =============================================================================
+# REGRESSION TESTS — real-corpus guard for every confirmed bug / new-issue fix
+# =============================================================================
+
+
+@pytest.fixture(scope="module")
+def corpus():
+    """Real CTA corpus loaded once for the entire regression block."""
+    reload_cta_data()
+    return get_all_ctas()
+
+
+def _cid(message, intent, records, topic=""):
+    """find_cta wrapper: returns matched cta_id or None."""
+    m = find_cta(message, make_understanding(intent=intent, topic=topic), records)
+    return m.cta.cta_id if m else None
+
+
+# ── BUG-01 ────────────────────────────────────────────────────────────────────
+# "ManaScience" was an alias (weight=3) in about/about.md, hijacking every
+# query containing "manascience" away from its correct CTA.
+
+@pytest.mark.parametrize("message,expected", [
+    ("What therapies does ManaScience offer?",  "therapies/general"),
+    ("What therapies does ManaScience provide?", "therapies/general"),
+    ("Is ManaScience paid?",                    "subscription/subscription"),
+    ("Does ManaScience cost money?",            "subscription/subscription"),
+    ("Is ManaScience GDPR compliant?",          "privacy/privacy_guidelines"),
+    ("Does ManaScience follow privacy laws?",   "privacy/privacy_guidelines"),
+])
+def test_bug01_manascience_no_longer_routes_to_about(message, expected, corpus):
+    assert _cid(message, "general_chat", corpus) == expected
+
+
+def test_bug01_about_still_reachable(corpus):
+    assert _cid("What is ManaScience?", "general_chat", corpus) == "about/about"
+
+
+# ── BUG-02 ────────────────────────────────────────────────────────────────────
+# "Learning", "Training", "Education" were aliases (weight=3) in courses/courses.md,
+# hijacking generic learning/difficulty queries away from conditions/general.
+
+@pytest.mark.parametrize("message", [
+    "My child has learning difficulties.",
+    "Learning difficulties.",
+    "My child has difficulty learning.",
+])
+def test_bug02_learning_routes_to_conditions_not_courses(message, corpus):
+    assert _cid(message, "personal_concern", corpus) == "conditions/general"
+
+
+def test_bug02_courses_still_reachable(corpus):
+    assert _cid("What courses do you offer?", "course_information", corpus) == "courses/courses"
+
+
+# ── BUG-03 ────────────────────────────────────────────────────────────────────
+# "Help" was an alias (weight=3) in faq/faq.md, pulling any "help" query into
+# the FAQ CTA instead of its correct destination.
+
+def test_bug03_i_need_help_returns_no_match(corpus):
+    assert _cid("I need help.", "general_chat", corpus) is None
+
+
+def test_bug03_brain_dev_routes_to_neuroplasticity_not_faq(corpus):
+    assert _cid("Help me understand brain development.", "therapy_information", corpus) == "neuroplasticity/neuroplasticity"
+
+
+def test_bug03_faq_still_reachable(corpus):
+    assert _cid("FAQ", "general_chat", corpus) == "faq/faq"
+
+
+# ── NEW-02 ────────────────────────────────────────────────────────────────────
+# "Developmental Delay" in Do NOT Trigger normalized to "developmental delay",
+# which substring-matched "developmental delays" — blocking the record entirely
+# via _is_excluded before any scoring took place.
+
+@pytest.mark.parametrize("message", [
+    "My child has developmental delays.",
+    "My child has a developmental delay.",
+    "Developmental delays.",
+    "Developmental delay.",
+])
+def test_new02_developmental_delay_routes_to_conditions_general(message, corpus):
+    assert _cid(message, "personal_concern", corpus) == "conditions/general"
+
+
+# ── BUG-04 ────────────────────────────────────────────────────────────────────
+# URL typo "/neuroplasiticity" in neuroplasticity/neuroplasticity.md.
+# Pre-solved before this session. Guard that the URL field is always populated.
+
+def test_bug04_neuroplasticity_cta_url_is_present(corpus):
+    rec = next((r for r in corpus if r.cta_id == "neuroplasticity/neuroplasticity"), None)
+    assert rec is not None, "neuroplasticity/neuroplasticity CTA missing from corpus"
+    assert rec.cta_url and len(rec.cta_url) > 0
+
+
+# ── BUG-05 ────────────────────────────────────────────────────────────────────
+# "Autism" in neurofeedback.md and neuroplasticity.md Related Topics caused
+# autism queries to score against those CTAs instead of conditions/autism.
+
+@pytest.mark.parametrize("message", [
+    "My child has autism.",
+    "What is autism?",
+    "My child was diagnosed with autism.",
+])
+def test_bug05_autism_routes_to_conditions_autism_not_neurofeedback(message, corpus):
+    assert _cid(message, "personal_concern", corpus) == "conditions/autism"
+
+
+def test_bug05_neurofeedback_still_matches_neurofeedback_autism_query(corpus):
+    # "Can Neurofeedback help autism?" has the Neurofeedback alias (weight=3) — still wins
+    assert _cid(
+        "Can Neurofeedback help autism?", "therapy_information", corpus, topic="Neurofeedback"
+    ) == "therapies/neurofeedback"
+
+
+# ── BUG-06 ────────────────────────────────────────────────────────────────────
+# Trigger "My child struggles in school because of ADHD." matched the shorter
+# "My child struggles in school." via text_norm-in-phrase_norm substring check;
+# ADHD (non-Library) won over conditions/general (Library).
+
+def test_bug06_struggles_in_school_without_adhd_routes_to_general(corpus):
+    assert _cid("My child struggles in school.", "personal_concern", corpus) == "conditions/general"
+
+
+def test_bug06_adhd_still_matches_when_adhd_mentioned(corpus):
+    assert _cid(
+        "My child with ADHD struggles in school.", "personal_concern", corpus, topic="ADHD"
+    ) == "conditions/adhd"
+
+
+# ── NEW-01 ────────────────────────────────────────────────────────────────────
+# Trigger examples in conditions/general.md only used "My child". Queries
+# with "My son", "My daughter", "My kid" returned no match.
+
+@pytest.mark.parametrize("message", [
+    "My son has trouble reading.",
+    "My son has learning difficulties.",
+    "My son struggles in school.",
+    "My daughter can't focus.",
+    "My daughter has learning difficulties.",
+    "My daughter struggles in school.",
+    "My kid has learning difficulties.",
+    "My kid struggles in school.",
+])
+def test_new01_son_daughter_kid_route_to_conditions_general(message, corpus):
+    assert _cid(message, "personal_concern", corpus) == "conditions/general"
+
+
+# ── NEW-03 ────────────────────────────────────────────────────────────────────
+# "Reading" (single word) in Arrowsmith Related Topics (weight=1) pulled generic
+# reading queries to Arrowsmith. Fixed by replacing with "Reading Difficulties".
+
+def test_new03_generic_reading_does_not_route_to_arrowsmith(corpus):
+    result = _cid("My child struggles with reading.", "personal_concern", corpus)
+    assert result != "therapies/arrowsmith"
+    assert result == "conditions/general"
+
+
+def test_new03_arrowsmith_still_reachable(corpus):
+    assert _cid(
+        "What is the Arrowsmith Program?", "therapy_information", corpus, topic="Arrowsmith"
+    ) == "therapies/arrowsmith"
+
+
+# ── NEW-06 ────────────────────────────────────────────────────────────────────
+# No autism.md existed; autism queries fell through to conditions/general or
+# incorrectly matched therapy CTAs.
+
+@pytest.mark.parametrize("message,topic", [
+    ("What is autism?",                  "Autism"),
+    ("Explain autism.",                  "Autism"),
+    ("What is ASD?",                     "ASD"),
+    ("My child has autism.",             "Autism"),
+    ("My child was diagnosed with ASD.", "ASD"),
+    ("Autism Spectrum Disorder.",        "Autism"),
+])
+def test_new06_autism_queries_route_to_conditions_autism(message, topic, corpus):
+    assert _cid(message, "personal_concern", corpus, topic=topic) == "conditions/autism"
+
+
+# ── NEW-07 ────────────────────────────────────────────────────────────────────
+# "Behaviour" and "Attention" in ADHD Related Topics (weight=1) caused ADHD
+# (non-Library) to beat conditions/general (Library) for generic queries with
+# no explicit ADHD signal.
+
+@pytest.mark.parametrize("message", [
+    "My child has behavioural challenges.",
+    "My child has attention problems.",
+])
+def test_new07_behaviour_attention_without_adhd_routes_to_general(message, corpus):
+    assert _cid(message, "personal_concern", corpus) == "conditions/general"
+
+
+def test_new07_adhd_still_reachable(corpus):
+    assert _cid("What is ADHD?", "personal_concern", corpus, topic="ADHD") == "conditions/adhd"
+
+
+# ── NEW-04 (side-effect of BUG-03) ───────────────────────────────────────────
+# "Support" in faq/faq.md Related Topics caused "My child needs support." to
+# spuriously route to faq/faq. Resolved when "Support" was removed during
+# the BUG-03 fix.
+
+def test_new04_support_query_does_not_route_to_faq(corpus):
+    assert _cid("My child needs support.", "personal_concern", corpus) != "faq/faq"
+
+
+# ── NEW-05 ────────────────────────────────────────────────────────────────────
+# "M.N.R.I." normalized to "m n r i" — four single-char tokens that could
+# token-subset-match any text containing those letters as isolated words.
+# Removed; the "MNRI" alias covers all practical cases.
+
+def test_new05_mnri_still_reachable_after_dotted_alias_removed(corpus):
+    assert _cid("What is MNRI?", "therapy_information", corpus, topic="MNRI") == "therapies/mnri"
+    assert _cid("Tell me about MNRI.", "therapy_information", corpus, topic="MNRI") == "therapies/mnri"

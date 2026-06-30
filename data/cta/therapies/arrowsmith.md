@@ -118,7 +118,7 @@ Related Topics:
 - Cognitive Skills
 - Cognitive Training
 - Learning
-- Reading
+- Reading Difficulties
 - Writing
 - Memory
 - Attention

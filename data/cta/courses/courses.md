@@ -106,9 +106,6 @@ Aliases:
 
 - Courses
 - Course
-- Training
-- Learning
-- Education
 - Educational Programs
 - Learning Programs
 - Online Courses

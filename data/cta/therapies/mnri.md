@@ -83,7 +83,7 @@ Aliases:
 ## Common Misspellings
 - MRNI
 - Manri
-- M.N.R.I.
+
 - Mnri Therapy
 - Masgutova Neuro Sensorimotor Reflex Integration
 

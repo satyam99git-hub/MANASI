@@ -20,6 +20,8 @@ Trigger Conditions:
 ## General Therapy Questions
 - What therapies are available?
 - What therapies does ManaScience cover?
+- What therapies does ManaScience offer?
+- What therapies does ManaScience provide?
 - Tell me about therapies.
 - What kinds of therapies do you have?
 - Show me all therapies.
@@ -47,7 +49,7 @@ Trigger Conditions:
 - I'm confused about which therapy to choose.
 - Which therapy should we try first?
 - There are so many therapies. Where do I start?
-- I need help deciding on a therapy.
+- I need guidance deciding on a therapy.
 - What therapy should I look into?
 - Which approach should I explore first?
 - I don't know where to begin.

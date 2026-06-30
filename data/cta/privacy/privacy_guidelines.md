@@ -100,7 +100,9 @@ Trigger Examples:
 ## Compliance
 
 - Are you GDPR compliant?
+- Is ManaScience GDPR compliant?
 - Do you follow privacy laws?
+- Does ManaScience follow privacy laws?
 - How do you comply with data protection laws?
 - How do you protect children's privacy?
 

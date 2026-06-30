@@ -98,7 +98,7 @@ Trigger Examples:
 - Can ADHD affect classroom behaviour?
 - Can ADHD affect academic performance?
 - Why can't my child focus in school?
-- My child struggles in school because of ADHD.
+- My child with ADHD struggles in school.
 
 ## Behaviour
 
@@ -192,17 +192,12 @@ Aliases:
 
 Related Topics:
 
-- Attention
-- Focus
 - Hyperactivity
 - Impulsivity
 - Executive Function
 - Working Memory
 - Organization
 - Time Management
-- Behaviour
-- Learning
-- School
 - Emotional Regulation
 - Neurodevelopment
 - Neuroplasticity

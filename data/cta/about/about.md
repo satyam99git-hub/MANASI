@@ -80,6 +80,14 @@ Trigger Examples:
 - Can adults use ManaScience?
 - Can professionals use ManaScience?
 - Can educators use ManaScience?
+- Can ManaScience help my child?
+- Can ManaScience help me?
+- How can ManaScience help?
+
+## Platform Name
+
+- ManaScience
+- Mana Science
 
 ## Navigation Requests
 
@@ -95,8 +103,6 @@ Trigger Examples:
 
 Aliases:
 
-- ManaScience
-- Mana Science
 - About ManaScience
 - About Us
 - Our Story
