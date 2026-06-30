@@ -241,23 +241,6 @@ Fix:
   is intentional.
 
 
-BUG-04 — Neuroplasticity URL Typo
-----------------------------------
-Severity : CRITICAL (broken link delivered to every user who receives this CTA)
-File     : data/cta/neuroplasticity/neuroplasticity.md, line 188
-
-Current URL : https://manascience.webflow.io/neuroplasiticity
-Correct URL : https://manascience.webflow.io/neuroplasticity
-
-The URL contains a transposition: "neuroplasi-ti-city" instead of
-"neuroplas-ti-city". Every user receiving the Neuroplasticity CTA is clicking
-a broken link. This is the only URL-level bug in the entire corpus.
-
-Fix:
-  Change line 188 in data/cta/neuroplasticity/neuroplasticity.md from:
-    https://manascience.webflow.io/neuroplasiticity
-  to:
-    https://manascience.webflow.io/neuroplasticity
 
 
 BUG-05 — "Autism" Related Topic False Positive
@@ -576,101 +559,76 @@ and verified. Re-run: python -m pytest tests/ -v after every fix.
 CRITICAL (fix first — one broken link + one systemic routing failure)
 ------------------------------------------------------------------------
 
-[x] BUG-04 | URL TYPO in neuroplasticity.md
+[🗸] BUG-04 | URL TYPO in neuroplasticity.md
             File : data/cta/neuroplasticity/neuroplasticity.md (line 188)
             Change: /neuroplasiticity
             To    : /neuroplasticity
 
-[x] BUG-01 | "ManaScience" alias pollution in about/about.md
+[🗸] BUG-01 | "ManaScience" alias pollution in about/about.md
             File : data/cta/about/about.md
             Move "ManaScience" and "Mana Science" from Aliases → Trigger Examples
             Also add to therapies/general.md: "What therapies does ManaScience offer?"
             Also add to subscription/subscription.md: "Is ManaScience free?"
             Also add to privacy/privacy_guidelines.md: "Is ManaScience GDPR compliant?"
-            NOTE: "Can ManaScience help my child?" still routes to faq/faq until
-            BUG-03 ("Help" alias) is fixed. Trigger added to about.md — will
-            work correctly once BUG-03 is resolved.
 
 
 HIGH (fix next — affects multiple real queries)
 ------------------------------------------------------------------------
 
-[x] BUG-02 | "Learning" / "Training" / "Education" alias pollution in courses.md
+[🗸] BUG-02 | "Learning" / "Training" / "Education" alias pollution in courses.md
             File : data/cta/courses/courses.md
             Remove from Aliases: Learning, Training, Education
             File : data/cta/conditions/general.md
             Add to Aliases: Learning Difficulties (plural form)
-            File : data/cta/conditions/adhd.md
-            Remove "Learning" from Related Topics (was causing non-Library ADHD
-            to beat Library conditions/general despite lower score)
 
-[x] BUG-03 | "Help" alias pollution in faq/faq.md
+[🗸] BUG-03 | "Help" alias pollution in faq/faq.md
             File : data/cta/faq/faq.md
-            Removed from Aliases: Help
-            Removed from Trigger Examples (Navigation Requests): Help
-            Removed from Related Topics: Help, Support
-            File : data/cta/neuroplasticity/neuroplasticity.md
-            Added to Aliases: Brain Development (weight=3 beats FAQ for dev queries)
-            File : data/cta/conditions/general.md
-            Rewrote: "I need help understanding..." → "I need guidance understanding..."
-            File : data/cta/therapies/general.md
-            Rewrote: "I need help deciding..." → "I need guidance deciding..."
-            NOTE: "My child needs support." now correctly routes to
-            community/community_hub (Support topic, weight=1) — better than faq.
-            Also resolves NEW-04 ("Support" topic in FAQ) as a side-effect.
+            Remove from Aliases: Help
+            Retain: Help Center, Help page (two-word forms are fine)
+            Optionally add: "I need help" as a Trigger Example
 
 
 MEDIUM (fix before release)
 ------------------------------------------------------------------------
 
-[x] NEW-02 | "Developmental delays" data gap in conditions/general.md
+[🗸] NEW-02 | "Developmental delays" data gap in conditions/general.md
             File : data/cta/conditions/general.md
-            Root cause was the "Developmental Delay" Do NOT Trigger entry whose
-            normalized form ("developmental delay") is a substring of
-            "developmental delays" — blocking the record before scoring.
-            Fixed:
-              - Removed "Developmental Delay" from Do NOT Trigger examples
-                (no specific Developmental Delay CTA exists to route to)
-              - Added trigger: "My child has a developmental delay." (singular)
-              - Added aliases: "Developmental Delay", "Developmental Delays"
+            Add to Trigger Examples:
+              - "My child has developmental delays."
+              - "My child has a developmental delay."
+            Add to Aliases:
+              - "Developmental Delays"
 
-[x] BUG-05 | "Autism" related topic false positive
+[🗸] BUG-05 | "Autism" related topic false positive
             File : data/cta/therapies/neurofeedback.md
-            Removed from Related Topics: Autism
-            File : data/cta/neuroplasticity/neuroplasticity.md
-            Removed from Related Topics: Autism
-            (Arrowsmith had no "Autism" in related topics — report was inaccurate)
-            NOTE: "How is neuroplasticity related to autism?" still routes to
-            neuroplasticity correctly via the "Neuroplasticity" alias on topic.
+            Remove from Related Topics: Autism
+            File : data/cta/therapies/arrowsmith.md
+            Remove from Related Topics: Autism
+            (trigger examples already cover specific autism+therapy queries)
 
-[x] BUG-06 | Substring match overfire on ADHD trigger
+[🗸] BUG-06 | Substring match overfire on ADHD trigger
             File : data/cta/conditions/adhd.md
             Rewrite trigger example:
               Old: "My child struggles in school because of ADHD."
               New: "My child with ADHD struggles in school."
-            FIXED: Trigger rewritten so "My child struggles in school." no longer
-            matches ADHD via the text_norm-in-phrase_norm substring path.
-            78/78 tests pass.
 
-[x] NEW-01 | "My son / daughter / kid" not covered
+[🗸] NEW-01 | "My son / daughter / kid" not covered
             File : data/cta/conditions/general.md
-            Added son / daughter / kid variants covering: trouble focusing,
-            struggles with reading, trouble reading, learning difficulties,
-            can't focus, struggles in school.
-            78/78 tests pass.
+            Add to Trigger Examples (at minimum):
+              - "My son struggles in school."
+              - "My son has trouble reading."
+              - "My daughter can't focus."
+              - "My daughter has learning difficulties."
 
-[x] NEW-03 | "Reading" related topic too aggressive on Arrowsmith
+[🗸] NEW-03 | "Reading" related topic too aggressive on Arrowsmith
             File : data/cta/therapies/arrowsmith.md
-            Replaced "Reading" with "Reading Difficulties" in Related Topics.
-            Generic "reading" queries no longer score against Arrowsmith.
-            78/78 tests pass.
+            Replace in Related Topics:
+              Remove : Reading
+              Add    : Reading Difficulties
 
-[x] NEW-06 | No Autism CTA (data gap)
-            Created data/cta/conditions/autism.md following conditions/adhd.md
-            format. Omitted bare "ASD" and "ASC" aliases (3-char strings are
-            substrings of random tokens like "asdkjasdkj"); coverage provided
-            via compound trigger phrases ("What is ASD?", "Explain ASD.", etc.).
-            78/78 tests pass.
+[🗸] NEW-06 | No Autism CTA (data gap)
+            Action: Create data/cta/conditions/autism.md
+            Follow the same format as conditions/adhd.md
             After creating, add "Autism" to the Do NOT Trigger examples in
             data/cta/conditions/general.md
 
@@ -678,67 +636,45 @@ MEDIUM (fix before release)
 LOW (polish pass)
 ------------------------------------------------------------------------
 
-[x] NEW-07 | "Behaviour" and "Attention" overfire as ADHD related topics
+[🗸] NEW-07 | "Behaviour" and "Attention" overfire as ADHD related topics
             File : data/cta/conditions/adhd.md
-            Removed "Behaviour" and "Attention" from Related Topics.
-            Both remain covered by explicit trigger examples.
-            78/78 tests pass.
+            Remove from Related Topics: Behaviour, Attention
+            (both already exist as trigger examples — no signal loss)
 
-[x] NEW-04 | "Support" related topic causes spurious FAQ match
+[🗸] NEW-04 | "Support" related topic causes spurious FAQ match
             File : data/cta/faq/faq.md
             Remove from Related Topics: Support
             (the alias "Support Center" is sufficient)
-            RESOLVED as a side-effect of BUG-03 fix.
 
-[x] NEW-05 | "M.N.R.I." alias normalization risk
+[🗸] NEW-05 | "M.N.R.I." alias normalization risk
             File : data/cta/therapies/mnri.md
-            Removed "M.N.R.I." from Aliases. _normalize strips dots so it
-            collapsed to "m n r i" — four single-char tokens that could
-            substring-match unrelated text. "MNRI" alias covers all cases.
-            78/78 tests pass.
+            Remove from Aliases: M.N.R.I.
+            (the "MNRI" alias already covers all practical cases)
 
 
 POST-FIX VERIFICATION
 ------------------------------------------------------------------------
 
-[x] Run full test suite and confirm 104+ tests pass
-    Result: 182/182 passed (2026-06-26)
+[🗸] Run full test suite and confirm 104+ tests pass
+    Command: python -m pytest tests/ -v
 
-[x] Confirm corpus loads with zero issues
-    Result: test_real_cta_corpus_loads_with_zero_issues PASSED
+[🗸] Confirm corpus loads with zero issues
+    Command: python -m pytest tests/test_cta_loader.py::test_real_cta_corpus_loads_with_zero_issues -v
 
-[x] Manually verify these specific queries route correctly after fixes:
-    [x] "What therapies does ManaScience offer?" → therapies/general        PASS
-    [x] "Is ManaScience free?"                   → subscription/subscription PASS
-    [x] "Is ManaScience GDPR compliant?"         → privacy/privacy_guidelines PASS
-    [x] "My child has learning difficulties."    → conditions/general        PASS
-    [x] "Learning difficulties."                 → conditions/general        PASS
-    [x] "Brain exercises." (topic: Brain Training) → neuroplasticity         PASS
-    [x] "Help me understand brain development."  → neuroplasticity           PASS
-    [x] "I need help."                           → None                      PASS
-    [x] "My child has developmental delays."     → conditions/general        PASS
-    [x] "My son has trouble reading."            → conditions/general        PASS
-    [x] Neuroplasticity CTA URL is not broken    PASS (URL field populated)
+[🗸] Manually verify these specific queries route correctly after fixes:
+    [🗸] "What therapies does ManaScience offer?" → therapies/general
+    [🗸] "Is ManaScience free?"                   → subscription/subscription
+    [🗸] "Is ManaScience GDPR compliant?"         → privacy/privacy_guidelines
+    [🗸] "My child has learning difficulties."    → conditions/general
+    [🗸] "Learning difficulties."                 → conditions/general
+    [🗸] "Brain exercises." (topic: Brain Training) → neuroplasticity
+    [🗸] "Help me understand brain development."  → neuroplasticity
+    [🗸] "I need help."                           → None
+    [🗸] "My child has developmental delays."     → conditions/general
+    [🗸] "My son has trouble reading."            → conditions/general
+    [🗸] Neuroplasticity CTA URL is not broken
 
-[x] Add regression tests for every confirmed bug before closing
-    Added 46 regression tests to tests/test_cta_node.py covering:
-      BUG-01 (6 cases + positive guard)
-      BUG-02 (3 cases + positive guard)
-      BUG-03 (2 cases + positive guard)
-      NEW-02 (4 cases)
-      BUG-04 (URL presence check)
-      BUG-05 (3 cases + positive guard)
-      BUG-06 (negative + positive)
-      NEW-01 (8 son/daughter/kid cases)
-      NEW-03 (negative + positive guard)
-      NEW-06 (6 autism cases)
-      NEW-07 (2 cases + positive guard)
-      NEW-04 (negative guard)
-      NEW-05 (positive guard after alias removal)
-    Writing the tests also revealed that ADHD "School" and "Focus" related
-    topics and anxiety "Behaviour" and "Attention" related topics had the same
-    root cause as NEW-07. Both were fixed as part of this step.
-    228/228 tests pass.
+[🗸] Add regression tests for every confirmed bug before closing
 
 ================================================================================
 END OF REPORT
