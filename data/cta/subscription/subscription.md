@@ -138,7 +138,6 @@ Related Topics:
 - Premium Features
 - Courses
 - Personalized Roadmap
-- Manasi
 - Account
 - Access
 
