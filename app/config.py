@@ -5,6 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Some hosting UIs (e.g. Railway) can save secrets with a trailing newline or
+# stray whitespace. A newline in the key makes an illegal HTTP header value
+# ("Bearer sk-...\n") and crashes the OpenAI client at startup, so normalize it
+# in-place — the OpenAI SDK reads OPENAI_API_KEY directly from the environment.
+if os.getenv("OPENAI_API_KEY"):
+    os.environ["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"].strip()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -16,7 +23,7 @@ def _resolve_dir(env_var: str, default: str) -> Path:
 
 
 class Settings:
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "").strip()
     chat_model: str = os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
     understanding_model: str = os.getenv("UNDERSTANDING_MODEL", "gpt-4o-mini")
     embedding_model: str = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
