@@ -269,6 +269,8 @@ origins = [
     "http://localhost:5173", 
     "http://127.0.0.1:5173",
     "http://192.168.29.34:5173",
+    "http://manascience.in",
+    "https://manascience.webflow.io"
 ]
 
 app.add_middleware(
